@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Web services - Origami</title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel='stylesheet' href='http://build.origami.ft.com/bundles/css?modules=o-techdocs'/>
+    <script src="http://build.origami.ft.com/bundles/js?modules=o-techdocs"></script>
+</head>
+<body class='o-techdocs'>
+
+<div class="o-grid-page">
+
+    <div class="o-grid-row o-techdocs-page-header">
+        <h1>%s</h1>
+        <p class='o-techdocs-page-header__lead'>Health check</p>
+    </div>
+
+    <div class="o-grid-row">
+        <div class="o-grid-col|9|m12|s12 o-techdocs-content">
+            <h1 id="web_service_components">Checks</h1>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    function output(inp) {
+        document.querySelector('.o-techdocs-content').appendChild(document.createElement('pre')).innerHTML = inp;
+    }
+
+    function syntaxHighlight(json) {
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'key';
+                } else {
+                    cls = 'string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'boolean';
+            } else if (/null/.test(match)) {
+                cls = 'null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+
+    var obj = %s;
+    var str = JSON.stringify(obj, undefined, 4);
+
+    output(syntaxHighlight(str));
+</script>
+</html>
