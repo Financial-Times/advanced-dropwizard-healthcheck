@@ -16,24 +16,21 @@ public class GoodToGoServlet extends HttpServlet {
 
 	private final GoodToGoChecker checker;
 	private final Environment environment;
-	private GTGConfig gtgConfig;
 
-	public GoodToGoServlet(GoodToGoChecker checker, Environment environment, GTGConfig gtgConfig) {
+	public GoodToGoServlet(GoodToGoChecker checker, Environment environment) {
 		this.checker = checker;
 		this.environment = environment;
-		this.gtgConfig = gtgConfig;
 	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
-		resp.setContentType(gtgConfig.getContentType());
+		resp.setContentType("application/json");
 		resp.setHeader("Cache-Control", "must-revalidate,no-cache,no-store");
 
 		if (checker.isGoodToGo(environment)) {
 			resp.setStatus(SC_OK);
-			resp.getWriter().append(gtgConfig.getOkBody());
 		} else {
 			resp.setStatus(SC_SERVICE_UNAVAILABLE);
 		}

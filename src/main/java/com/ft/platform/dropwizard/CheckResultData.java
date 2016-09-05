@@ -2,20 +2,16 @@ package com.ft.platform.dropwizard;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
-import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 public class CheckResultData implements Comparable<CheckResultData> {
 
     final AdvancedHealthCheck healthCheck;
     final AdvancedResult result;
 
-    public CheckResultData(final AdvancedHealthCheck healthCheck, final AdvancedResult result) {
+    public CheckResultData(AdvancedHealthCheck healthCheck, AdvancedResult result) {
         this.healthCheck = healthCheck;
         this.result = result;
-    }
-
-    public String getId(){
-        return healthCheck.id();
     }
 
     public String getName() {
@@ -56,7 +52,7 @@ public class CheckResultData implements Comparable<CheckResultData> {
 	}
 
 	public String toString(){
-        return MoreObjects.toStringHelper(this)
+        return Objects.toStringHelper(this)
                 .add("name", getName())
                 .add("isOk", isOk())
                 .add("lastUpdated", getLastUpdated())
@@ -69,8 +65,8 @@ public class CheckResultData implements Comparable<CheckResultData> {
     }
 
 	@Override
-	public int compareTo(final CheckResultData other) {
-		return this.getResult().status().getPriority().compareTo(other.getResult().status().getPriority());
+	public int compareTo(CheckResultData o) {
+		return this.getResult().status().getPriority().compareTo(o.getResult().status().getPriority());
 	}
     
     

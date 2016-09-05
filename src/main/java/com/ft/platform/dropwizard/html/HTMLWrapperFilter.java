@@ -3,8 +3,13 @@ package com.ft.platform.dropwizard.html;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 import javax.ws.rs.core.MediaType;
@@ -34,16 +39,7 @@ public class HTMLWrapperFilter implements Filter {
 
     @Override
     public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
-        String expectedContent = ((HttpServletRequest) servletRequest).getHeader("Accept");
 
-        if (expectedContent != null && expectedContent.contains("text/html")) {
-            filterHTMLRequest(servletRequest, servletResponse, filterChain);
-        } else {
-            filterChain.doFilter(servletRequest, servletResponse);
-        }
-    }
-
-    private void filterHTMLRequest(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
         CharResponseWrapper wrappedResponse = new CharResponseWrapper((HttpServletResponse) servletResponse);
 
         filterChain.doFilter(servletRequest, wrappedResponse);
@@ -57,9 +53,10 @@ public class HTMLWrapperFilter implements Filter {
 
         if (isFileSet()) {
 
+
             String unpackedResult = handleFormat(bytes);
 
-            String out = String.format(fileIn.toString(), applicationName, unpackedResult);
+            String out = String.format(fileIn.toString(), applicationName, unpackedResult.toString());
 
             servletResponse.setContentLength(out.getBytes().length);
             servletResponse.getOutputStream().write(out.getBytes());
@@ -106,15 +103,6 @@ public class HTMLWrapperFilter implements Filter {
 
         public void write(final int param) throws IOException {
             baos.write(param);
-        }
-
-        @Override
-        public boolean isReady() {
-            return true;
-        }
-
-        @Override
-        public void setWriteListener(WriteListener writeListener) {
         }
     }
 

@@ -4,11 +4,6 @@ import io.dropwizard.Bundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-/**
- * Use GoodToGoConfiguredBundle instead, note this will give you a default response body of "OK" and content type of
- * text/plain for ok responses by default.
- */
-@Deprecated()
 public class GoodToGoBundle implements Bundle {
 
 	private final GoodToGoChecker checker;
@@ -23,11 +18,7 @@ public class GoodToGoBundle implements Bundle {
 
 	@Override
 	public void run(Environment environment) {
-		GoodToGoServlet servlet = new GoodToGoServlet(
-				checker,
-				environment,
-				new GTGConfig("", "application/json") //for backwards compatibility
-		);
+		GoodToGoServlet servlet = new GoodToGoServlet(checker, environment);
 		environment.servlets().addServlet("GoodToGoServlet", servlet)
 				.addMapping("/__gtg");
 	}

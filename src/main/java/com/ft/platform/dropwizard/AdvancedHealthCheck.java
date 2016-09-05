@@ -7,7 +7,7 @@ public abstract class AdvancedHealthCheck extends HealthCheck implements Compara
 
     private final String name;
 
-    protected AdvancedHealthCheck(final String name) {
+    protected AdvancedHealthCheck(String name) {
         this.name = name;
     }
 
@@ -19,15 +19,11 @@ public abstract class AdvancedHealthCheck extends HealthCheck implements Compara
     public final AdvancedResult executeAdvanced() {
         try {
             return checkAdvanced();
-        } catch (final Error e) {
+        } catch (Error e) {
             throw e;
-        } catch (final Throwable e) {
+        } catch (Throwable e) {
             return AdvancedResult.error(this, e);
         }
-    }
-
-    protected String id(){
-        return name;
     }
 
     protected abstract AdvancedResult checkAdvanced() throws Exception;
@@ -43,15 +39,15 @@ public abstract class AdvancedHealthCheck extends HealthCheck implements Compara
     public String getName() {
         return name;
     }
+
     @Override
-    public int compareTo(final AdvancedHealthCheck other) {
+    public int compareTo(AdvancedHealthCheck other) {
         return getName().compareTo(other.getName());
     }
 
     @Override
     public String toString() {
         return Objects.toStringHelper(this.getClass())
-                .add("id", id())
                 .add("name", name)
                 .add("severity", severity())
                 .add("businessImpact", businessImpact())

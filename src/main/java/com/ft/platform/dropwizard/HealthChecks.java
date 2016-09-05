@@ -27,7 +27,7 @@ public class HealthChecks {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, HealthCheck> extractHealthChecksFrom(Environment environment) {
+    private static Map<String, HealthCheck> extractHealthChecksFrom(Environment environment) {
         try {
             Field healthChecksField = HealthCheckRegistry.class.getDeclaredField("healthChecks");
             healthChecksField.setAccessible(true);

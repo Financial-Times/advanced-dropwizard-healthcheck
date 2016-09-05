@@ -9,143 +9,128 @@ import org.junit.Test;
 
 public class DefaultGoodToGoCheckerTest {
 
-    private GoodToGoChecker checker;
+	private GoodToGoChecker checker;
 
-    @Before
-    public void init() {
-        checker = new DefaultGoodToGoChecker();
-    }
+	@Before
+	public void init() {
+		checker = new DefaultGoodToGoChecker();
+	}
 
-    @Test
-    public void shouldReturnFalseWhenACheckIsError() {
+	@Test
+	public void shouldReturnFalseWhenACheckIsError() {
 
-        final Environment environment = new Environment("test-env", null, null, null,
-                Thread.currentThread().getContextClassLoader());
-        environment.healthChecks().register("test", new ErroringHealthCheck());
+		Environment environment = new Environment("test-env", null, null, null,
+				Thread.currentThread().getContextClassLoader());
+		environment.healthChecks().register("test", new ErroringHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(false));
+		assertThat(checker.isGoodToGo(environment), is(false));
 
-    }
+	}
 
-    @Test
-    public void shouldReturnTrueWhenACheckIsWarn() {
+	@Test
+	public void shouldReturnTrueWhenACheckIsWarn() {
 
-        final Environment environment = new Environment("test-env", null, null, null,
-                Thread.currentThread().getContextClassLoader());
-        environment.healthChecks().register("test", new WarningHealthCheck());
+		Environment environment = new Environment("test-env", null, null, null,
+				Thread.currentThread().getContextClassLoader());
+		environment.healthChecks().register("test", new WarningHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(true));
+		assertThat(checker.isGoodToGo(environment), is(true));
 
-    }
+	}
 
-    @Test
-    public void shouldReturnTrueWhenACheckIsHealthy() {
+	@Test
+	public void shouldReturnTrueWhenACheckIsHealthy() {
 
-        final Environment environment = new Environment("test-env", null, null, null,
-                Thread.currentThread().getContextClassLoader());
-        environment.healthChecks().register("test", new PassingHealthCheck());
+		Environment environment = new Environment("test-env", null, null, null,
+				Thread.currentThread().getContextClassLoader());
+		environment.healthChecks().register("test", new PassingHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(true));
+		assertThat(checker.isGoodToGo(environment), is(true));
 
-    }
+	}
 
-    @Test
-    public void shouldReturnTrueWithMixedResultsContainingNoError() {
-        final Environment environment = new Environment("test-env", null, null, null,
-                Thread.currentThread().getContextClassLoader());
-        environment.healthChecks().register("test", new PassingHealthCheck());
-        environment.healthChecks().register("test", new WarningHealthCheck());
-        environment.healthChecks().register("test", new PassingHealthCheck());
-        environment.healthChecks().register("test", new WarningHealthCheck());
+	@Test
+	public void shouldReturnTrueWithMixedResultsContainingNoError() {
+		Environment environment = new Environment("test-env", null, null, null,
+				Thread.currentThread().getContextClassLoader());
+		environment.healthChecks().register("test", new PassingHealthCheck());
+		environment.healthChecks().register("test", new WarningHealthCheck());
+		environment.healthChecks().register("test", new PassingHealthCheck());
+		environment.healthChecks().register("test", new WarningHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(true));
-    }
+		assertThat(checker.isGoodToGo(environment), is(true));
+	}
 
-    @Test
-    public void shouldReturnFalseWithMixedResultsContainingAnError() {
-        final Environment environment = new Environment("test-env", null, null, null,
-                Thread.currentThread().getContextClassLoader());
-        environment.healthChecks().register("test", new PassingHealthCheck());
-        environment.healthChecks().register("test", new WarningHealthCheck());
-        environment.healthChecks().register("test", new ErroringHealthCheck());
-        environment.healthChecks().register("test", new WarningHealthCheck());
+	@Test
+	public void shouldReturnFalseWithMixedResultsContainingAnError() {
+		Environment environment = new Environment("test-env", null, null, null,
+				Thread.currentThread().getContextClassLoader());
+		environment.healthChecks().register("test", new PassingHealthCheck());
+		environment.healthChecks().register("test", new WarningHealthCheck());
+		environment.healthChecks().register("test", new ErroringHealthCheck());
+		environment.healthChecks().register("test", new WarningHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(true));
-    }
+		assertThat(checker.isGoodToGo(environment), is(true));
+	}
 
-    private abstract static class TestHealthCheck extends AdvancedHealthCheck {
+	private abstract static class TestHealthCheck extends AdvancedHealthCheck {
 
-        protected TestHealthCheck(final String name) {
-            super(name);
-        }
+		protected TestHealthCheck(String name) {
+			super(name);
+		}
 
-        @Override
-        protected int severity() {
-            return 1;
-        }
+		@Override
+		protected int severity() {
+			return 1;
+		}
 
-        @Override
-        protected String businessImpact() {
-            return "impact";
-        }
+		@Override
+		protected String businessImpact() {
+			return "impact";
+		}
 
-        @Override
-        protected String technicalSummary() {
-            return "tech summary";
-        }
+		@Override
+		protected String technicalSummary() {
+			return "tech summary";
+		}
 
-        @Override
-        protected String panicGuideUrl() {
-            return "don't panic";
-        }
+		@Override
+		protected String panicGuideUrl() {
+			return "don't panic";
+		}
 
-    }
+	}
 
-    private static class ErroringHealthCheck extends TestHealthCheck {
-        protected ErroringHealthCheck() {
-            super(ErroringHealthCheck.class.getName());
-        }
+	private static class ErroringHealthCheck extends TestHealthCheck {
+		protected ErroringHealthCheck() {
+			super(ErroringHealthCheck.class.getName());
+		}
 
-        @Override
-        protected String id() {
-            return "id";
-        }
+		@Override
+		protected AdvancedResult checkAdvanced() throws Exception {
+			return AdvancedResult.error(this, "error");
+		}
+	}
 
-        @Override
-        protected AdvancedResult checkAdvanced() throws Exception {
-            return AdvancedResult.error(this, "error");
-        }
-    }
+	private static class WarningHealthCheck extends TestHealthCheck {
+		protected WarningHealthCheck() {
+			super(WarningHealthCheck.class.getName());
+		}
 
-    private static class WarningHealthCheck extends TestHealthCheck {
-        protected WarningHealthCheck(){
-            super(WarningHealthCheck.class.getName());
-    }
+		@Override
+		protected AdvancedResult checkAdvanced() throws Exception {
+			return AdvancedResult.warn(this, "warn");
+		}
+	}
 
-        @Override
-        protected String id() {
-            return "id";
-        }
+	private static class PassingHealthCheck extends TestHealthCheck {
+		protected PassingHealthCheck() {
+			super(PassingHealthCheck.class.getName());
+		}
 
-        @Override
-        protected AdvancedResult checkAdvanced() throws Exception {
-            return AdvancedResult.warn(this, "warn");
-        }
-    }
-
-    private static class PassingHealthCheck extends TestHealthCheck {
-        protected PassingHealthCheck() {
-            super(PassingHealthCheck.class.getName());
-        }
-
-        @Override
-        protected String id() {
-            return "id";
-        }
-
-        @Override
-        protected AdvancedResult checkAdvanced() throws Exception {
-            return AdvancedResult.healthy();
-        }
-    }
+		@Override
+		protected AdvancedResult checkAdvanced() throws Exception {
+			return AdvancedResult.healthy();
+		}
+	}
 }

@@ -7,13 +7,3 @@ server:
   adminConnectors:
     - type: http
       port: 0
-
-appInfo:
-  systemCode: test-system-code
-  description: "tests description"
-  runbookUrl: "http://test-runbook/url"
-
-jerseyClient:
-    timeout: 10s
-    connectionTimeout: 10s
-    connectionRequestTimeout: 10s

@@ -15,17 +15,15 @@ import java.io.File;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.client.ClientResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.io.Resources;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 
 public class GoodToGoCheckIntegrationTest {
 
@@ -43,25 +41,25 @@ public class GoodToGoCheckIntegrationTest {
 	@Test
 	public void shouldReturn200WhenCheckIsOK() {
 		FixedResponseChecker.response = true;
-		Response result = getHealthCheckPage();
+		ClientResponse result = getHealthCheckPage();
 
 		assertThat(result.getStatus(), is(200));
-		assertThat(result.readEntity(String.class), is("OK"));
-		assertThat(result.getMediaType(), is(MediaType.TEXT_PLAIN_TYPE));
-		assertThat(result.getStringHeaders().getFirst("Cache-Control"),
+		assertThat(result.getHeaders().getFirst("Content-Type"),
+				is("application/json"));
+		assertThat(result.getHeaders().getFirst("Cache-Control"),
 				containsString("no-cache"));
 	}
 
 	@Test
 	public void shouldReturn503WhenCheckIsNotOK() {
 		FixedResponseChecker.response = false;
-		Response result = getHealthCheckPage();
+		ClientResponse result = getHealthCheckPage();
 
 		assertThat(result.getStatus(), is(503));
 	}
 
-	private Response getHealthCheckPage() {
-		return client.target(url("/__gtg")).request().get();
+	private ClientResponse getHealthCheckPage() {
+		return client.resource(url("/__gtg")).get(ClientResponse.class);
 	}
 
 	private String url(String pathAndQuery) {
@@ -77,7 +75,7 @@ public class GoodToGoCheckIntegrationTest {
 		}
 	}
 
-	public static class HealthCheckTestConfig extends Configuration implements ConfigWithAppInfo, ConfigWithGTG{
+	public static class HealthCheckTestConfig extends Configuration {
 
 		@JsonProperty
 		private String dummy = "";
@@ -85,25 +83,9 @@ public class GoodToGoCheckIntegrationTest {
 		@JsonProperty
 		private JerseyClientConfiguration jerseyClient = new JerseyClientConfiguration();
 
-		@JsonProperty
-		private AppInfo appInfo;
-
-		@JsonProperty
-		private GTGConfig gtg = new GTGConfig();
-
 		public Client buildJerseyClient(Environment environment) {
 			return new JerseyClientBuilder(environment).using(jerseyClient)
 					.using(environment).build("TestJersey");
-		}
-
-		@Override
-		public AppInfo getAppInfo() {
-			return appInfo;
-		}
-
-		@Override
-		public GTGConfig getGtg() {
-			return gtg;
 		}
 	}
 
@@ -112,7 +94,7 @@ public class GoodToGoCheckIntegrationTest {
 		
 		@Override
 		public void initialize(Bootstrap<HealthCheckTestConfig> bootstrap) {
-			bootstrap.addBundle(new GoodToGoConfiguredBundle(new FixedResponseChecker()));
+			bootstrap.addBundle(new GoodToGoBundle(new FixedResponseChecker()));
 		}
 
 		@Override
