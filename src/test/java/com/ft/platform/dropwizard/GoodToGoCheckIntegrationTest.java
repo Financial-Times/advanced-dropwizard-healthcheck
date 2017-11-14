@@ -1,6 +1,8 @@
 package com.ft.platform.dropwizard;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import io.dropwizard.Application;
@@ -12,6 +14,7 @@ import io.dropwizard.setup.Environment;
 import io.dropwizard.testing.junit.DropwizardAppRule;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -19,7 +22,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.client.ClientResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,9 +49,7 @@ public class GoodToGoCheckIntegrationTest {
 
 		assertThat(result.getStatus(), is(200));
 		assertThat(result.readEntity(String.class), is("OK"));
-		assertThat(result.getMediaType(), is(MediaType.TEXT_PLAIN_TYPE));
-		assertThat(result.getStringHeaders().getFirst("Cache-Control"),
-				containsString("no-cache"));
+		checkResponseHeaders(result);
 	}
 
 	@Test
@@ -58,8 +58,16 @@ public class GoodToGoCheckIntegrationTest {
 		Response result = getHealthCheckPage();
 
 		assertThat(result.getStatus(), is(503));
+        checkResponseHeaders(result);
 	}
 
+	private void checkResponseHeaders(Response result) {
+        assertThat(result.getMediaType().toString(), startsWith(MediaType.TEXT_PLAIN));
+        assertThat(result.getMediaType().getParameters().get(MediaType.CHARSET_PARAMETER), is(equalToIgnoringCase(StandardCharsets.US_ASCII.name())));
+        assertThat(result.getStringHeaders().getFirst("Cache-Control"),
+                containsString("no-cache"));
+	}
+	
 	private Response getHealthCheckPage() {
 		return client.target(url("/__gtg")).request().get();
 	}
