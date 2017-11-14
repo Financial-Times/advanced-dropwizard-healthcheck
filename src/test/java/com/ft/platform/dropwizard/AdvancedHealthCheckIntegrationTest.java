@@ -1,10 +1,12 @@
 package com.ft.platform.dropwizard;
 
+import com.codahale.metrics.MetricFilter;
 import com.ft.platform.dropwizard.testsupport.ConfigPathBuilder;
 import com.ft.platform.dropwizard.testsupport.HealthCheckTestConfig;
 import com.ft.platform.dropwizard.testsupport.HealthCheckTestService;
 import com.ft.platform.dropwizard.testsupport.TestAdvancedHealthCheck;
 import io.dropwizard.testing.junit.DropwizardAppRule;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,6 +32,11 @@ public class AdvancedHealthCheckIntegrationTest {
     @Before
     public void init() {
         client = app.getConfiguration().buildJerseyClient(app.getEnvironment());
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        app.getEnvironment().metrics().removeMatching(MetricFilter.ALL);
     }
 
     @Test

@@ -3,7 +3,7 @@ package com.ft.platform.dropwizard;
 import com.codahale.metrics.health.HealthCheck;
 import com.ft.platform.dropwizard.system.Clock;
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.ByteArrayOutputStream;
@@ -101,7 +101,7 @@ public class AdvancedResult {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this.getClass())
+		return MoreObjects.toStringHelper(this.getClass())
 				.add("status", status)
 				.add("checkOutput", checkOutput)
 				.add("checkedDate", checkedDate)

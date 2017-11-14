@@ -1,7 +1,7 @@
 package com.ft.platform.dropwizard;
 
 import com.codahale.metrics.health.HealthCheck;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 public abstract class AdvancedHealthCheck extends HealthCheck implements Comparable<AdvancedHealthCheck> {
 
@@ -50,7 +50,7 @@ public abstract class AdvancedHealthCheck extends HealthCheck implements Compara
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this.getClass())
+        return MoreObjects.toStringHelper(this.getClass())
                 .add("id", id())
                 .add("name", name)
                 .add("severity", severity())

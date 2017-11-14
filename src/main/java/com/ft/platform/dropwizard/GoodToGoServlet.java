@@ -2,6 +2,8 @@ package com.ft.platform.dropwizard;
 
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+import static java.nio.charset.StandardCharsets.US_ASCII;
+
 import io.dropwizard.setup.Environment;
 
 import java.io.IOException;
@@ -13,7 +15,8 @@ import javax.servlet.http.HttpServletResponse;
 
 @SuppressWarnings("serial")
 public class GoodToGoServlet extends HttpServlet {
-
+    private static final String ASCII = US_ASCII.name();
+    
 	private final GoodToGoChecker checker;
 	private final Environment environment;
 	private GTGConfig gtgConfig;
@@ -27,7 +30,8 @@ public class GoodToGoServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-
+	    
+	    resp.setCharacterEncoding(ASCII);
 		resp.setContentType(gtgConfig.getContentType());
 		resp.setHeader("Cache-Control", "must-revalidate,no-cache,no-store");
 
