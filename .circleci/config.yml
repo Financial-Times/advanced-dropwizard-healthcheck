@@ -1,0 +1,12 @@
+version: 2
+jobs:
+  build:
+    working_directory: /src/ft-advanced-dw-healthcheck
+    docker:
+      - image: circleci/openjdk:8-jdk
+
+    steps:
+      - checkout
+      - run:
+        name: Maven build
+        command: mvn clean verify
