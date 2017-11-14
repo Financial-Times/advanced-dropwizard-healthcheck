@@ -8,5 +8,5 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Maven build
-        command: mvn clean verify
+          name: Maven build
+          command: mvn clean verify
