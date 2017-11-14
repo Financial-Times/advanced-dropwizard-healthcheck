@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /src/ft-advanced-dw-healthcheck
+    working_directory: ~/src/ft-advanced-dw-healthcheck
     docker:
       - image: circleci/openjdk:8-jdk
 
