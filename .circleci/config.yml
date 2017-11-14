@@ -9,4 +9,4 @@ jobs:
       - checkout
       - run:
           name: Maven build
-          command: mvn clean verify
+          command: mvn clean test jacoco:report coveralls:report
