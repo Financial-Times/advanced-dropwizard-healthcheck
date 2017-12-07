@@ -1,11 +1,13 @@
 package com.ft.platform.dropwizard;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import io.dropwizard.setup.Environment;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class DefaultGoodToGoCheckerTest {
 
@@ -13,7 +15,7 @@ public class DefaultGoodToGoCheckerTest {
 
     @Before
     public void init() {
-        checker = new DefaultGoodToGoChecker();
+        checker = new DefaultGoodToGoChecker(1);
     }
 
     @Test
@@ -23,7 +25,7 @@ public class DefaultGoodToGoCheckerTest {
                 Thread.currentThread().getContextClassLoader());
         environment.healthChecks().register("test", new ErroringHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(false));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "")));
 
     }
 
@@ -34,18 +36,17 @@ public class DefaultGoodToGoCheckerTest {
                 Thread.currentThread().getContextClassLoader());
         environment.healthChecks().register("test", new WarningHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(true));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "")));
 
     }
 
     @Test
     public void shouldReturnTrueWhenACheckIsHealthy() {
-
         final Environment environment = new Environment("test-env", null, null, null,
                 Thread.currentThread().getContextClassLoader());
         environment.healthChecks().register("test", new PassingHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(true));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "")));
 
     }
 
@@ -58,7 +59,7 @@ public class DefaultGoodToGoCheckerTest {
         environment.healthChecks().register("test", new PassingHealthCheck());
         environment.healthChecks().register("test", new WarningHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(true));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "")));
     }
 
     @Test
@@ -70,7 +71,16 @@ public class DefaultGoodToGoCheckerTest {
         environment.healthChecks().register("test", new ErroringHealthCheck());
         environment.healthChecks().register("test", new WarningHealthCheck());
 
-        assertThat(checker.isGoodToGo(environment), is(true));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "")));
+    }
+
+    @Test
+    public void shouldReturnFalseWithErrorMessageWhenTimeout() {
+        final Environment environment = new Environment("test-env", null, null, null,
+                Thread.currentThread().getContextClassLoader());
+        environment.healthChecks().register("test", new LongRunningHealthCheck());
+
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "Timeout running status check")));
     }
 
     private abstract static class TestHealthCheck extends AdvancedHealthCheck {
@@ -118,9 +128,9 @@ public class DefaultGoodToGoCheckerTest {
     }
 
     private static class WarningHealthCheck extends TestHealthCheck {
-        protected WarningHealthCheck(){
+        protected WarningHealthCheck() {
             super(WarningHealthCheck.class.getName());
-    }
+        }
 
         @Override
         protected String id() {
@@ -145,6 +155,23 @@ public class DefaultGoodToGoCheckerTest {
 
         @Override
         protected AdvancedResult checkAdvanced() throws Exception {
+            return AdvancedResult.healthy();
+        }
+    }
+
+    private static class LongRunningHealthCheck extends TestHealthCheck {
+        protected LongRunningHealthCheck() {
+            super(LongRunningHealthCheck.class.getName());
+        }
+
+        @Override
+        protected String id() {
+            return "id";
+        }
+
+        @Override
+        protected AdvancedResult checkAdvanced() throws Exception {
+            TimeUnit.SECONDS.sleep(2);
             return AdvancedResult.healthy();
         }
     }

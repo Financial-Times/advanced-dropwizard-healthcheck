@@ -9,20 +9,44 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class HealthChecks {
 
     public static SortedMap<AdvancedHealthCheck, AdvancedResult> runAdvancedHealthChecksIn(Environment environment) {
+        return runParallelAdvancedHealthChecksWithTimeoutIn(environment, 0);
+    }
+
+    static SortedMap<AdvancedHealthCheck, AdvancedResult> runParallelAdvancedHealthChecksWithTimeoutIn(Environment environment, int timeout) {
         Map<String, HealthCheck> healthChecks = extractHealthChecksFrom(environment);
 
-        final SortedMap<AdvancedHealthCheck, AdvancedResult> results = new TreeMap<AdvancedHealthCheck, AdvancedResult>();
-        for (HealthCheck entry: healthChecks.values()) {
+        final SortedMap<AdvancedHealthCheck, AdvancedResult> results = new TreeMap<>();
+        ExecutorService executorService = Executors.newFixedThreadPool(healthChecks.size());
+        Map<AdvancedHealthCheck, Future<AdvancedResult>> futures = new TreeMap<>();
+        for (HealthCheck entry : healthChecks.values()) {
             if (!(entry instanceof AdvancedHealthCheck)) continue;
             AdvancedHealthCheck healthCheck = (AdvancedHealthCheck) entry;
-            final AdvancedResult result = healthCheck.executeAdvanced();
-            results.put(healthCheck, result);
+            futures.put(healthCheck, executorService.submit(healthCheck::executeAdvanced));
         }
 
+        for (Map.Entry<AdvancedHealthCheck, Future<AdvancedResult>> entry: futures.entrySet()) {
+            try {
+                if (timeout > 0) {
+                    results.put(entry.getKey(), entry.getValue().get(timeout, TimeUnit.SECONDS));
+                } else {
+                    results.put(entry.getKey(), entry.getValue().get());
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                results.put(entry.getKey(), AdvancedResult.error(entry.getKey(), e));
+            } catch (TimeoutException e) {
+                results.put(entry.getKey(), AdvancedResult.error(entry.getKey(), "Timed out after " + timeout + " second(s)"));
+            }
+        }
         return Collections.unmodifiableSortedMap(results);
     }
 

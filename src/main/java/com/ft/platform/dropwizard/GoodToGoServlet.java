@@ -31,11 +31,13 @@ public class GoodToGoServlet extends HttpServlet {
 		resp.setContentType(gtgConfig.getContentType());
 		resp.setHeader("Cache-Control", "must-revalidate,no-cache,no-store");
 
-		if (checker.isGoodToGo(environment)) {
+		GoodToGoResult goodToGoResult = checker.runCheck(environment);
+		if (goodToGoResult.isGoodToGo()) {
 			resp.setStatus(SC_OK);
 			resp.getWriter().append(gtgConfig.getOkBody());
 		} else {
 			resp.setStatus(SC_SERVICE_UNAVAILABLE);
+			resp.getWriter().append(goodToGoResult.getErrorMessage());
 		}
 
 		resp.getWriter().close();
