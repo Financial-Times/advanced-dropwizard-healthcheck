@@ -2,7 +2,7 @@ package com.ft.platform.dropwizard;
 
 import java.util.Objects;
 
-class GoodToGoResult {
+public class GoodToGoResult {
      private boolean goodToGo;
      private String errorMessage;
 
