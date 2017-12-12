@@ -43,11 +43,7 @@ public class AdvancedSynchronousHealthChecksRunner {
         this.systemCode = systemCode;
         this.timeOut = timeOut;
     }
-
-    private static ObjectMapper buildObjectMapper() {
-        return new ObjectMapper();
-    }
-
+    
     public String getAppName() {
         return appName;
     }
