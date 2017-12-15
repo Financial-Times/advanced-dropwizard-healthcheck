@@ -10,20 +10,14 @@ import java.util.SortedMap;
 
 public class AdvancedSynchronousHealthChecksRunner {
 
+    private static final int DEFAULT_TIMEOUT_IN_SECONDS = 10;
     private final Environment environment;
     private final ObjectMapper objectMapper;
     private final String appName;
     private final String appDescription;
     private final HealthcheckFailureReporter healthcheckFailureReporter;
     private final String systemCode;
-
-    public AdvancedSynchronousHealthChecksRunner(final Environment environment,
-                                                 final String appName,
-                                                 final String appDescription,
-                                                 final String systemCode,
-                                                 final HealthcheckFailureReporter healthcheckFailureReporter) {
-        this(environment, buildObjectMapper(), appName, appDescription, systemCode, healthcheckFailureReporter);
-    }
+    private final int timeOutInSeconds;
 
     public AdvancedSynchronousHealthChecksRunner(final Environment environment,
                                                  final ObjectMapper objectMapper,
@@ -31,24 +25,31 @@ public class AdvancedSynchronousHealthChecksRunner {
                                                  final String appDescription,
                                                  final String systemCode,
                                                  final HealthcheckFailureReporter healthcheckFailureReporter) {
+        this(environment, objectMapper, appName, appDescription, systemCode, healthcheckFailureReporter, DEFAULT_TIMEOUT_IN_SECONDS);
+    }
+
+    public AdvancedSynchronousHealthChecksRunner(final Environment environment,
+                                                 final ObjectMapper objectMapper,
+                                                 final String appName,
+                                                 final String appDescription,
+                                                 final String systemCode,
+                                                 final HealthcheckFailureReporter healthcheckFailureReporter,
+                                                 final int timeOutInSeconds) {
         this.environment = environment;
         this.objectMapper = objectMapper;
         this.appName = appName;
         this.appDescription = appDescription;
         this.healthcheckFailureReporter = healthcheckFailureReporter;
         this.systemCode = systemCode;
+        this.timeOutInSeconds = timeOutInSeconds;
     }
-
-    private static ObjectMapper buildObjectMapper() {
-        return new ObjectMapper();
-    }
-
+    
     public String getAppName() {
         return appName;
     }
 
     public HealthCheckPageData run() {
-        SortedMap<AdvancedHealthCheck, AdvancedResult> results = HealthChecks.runAdvancedHealthChecksIn(environment);
+        SortedMap<AdvancedHealthCheck, AdvancedResult> results = HealthChecks.runParallelAdvancedHealthChecksWithTimeoutIn(environment, timeOutInSeconds);
 
         List<CheckResultData> checkResults = new ArrayList<>(results.size());
         results.entrySet().stream()

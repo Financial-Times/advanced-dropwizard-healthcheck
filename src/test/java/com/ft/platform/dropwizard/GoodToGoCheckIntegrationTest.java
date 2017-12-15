@@ -128,8 +128,8 @@ public class GoodToGoCheckIntegrationTest {
 		private static boolean response;
 
 		@Override
-		public boolean isGoodToGo(Environment env) {
-			return response;
+		public GoodToGoResult runCheck(Environment env) {
+			return new GoodToGoResult(response, "");
 		}
 
 	}

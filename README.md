@@ -1,10 +1,9 @@
 Building
 ========
 
-The Jenkins job for this library is: [Library - Advanced Healthcheck](http://ftjen06648-lvpr-uk-p:8181/view/Libraries/job/Library%20-%20Advanced%20Healthcheck/)
+Creating a git release on Github will trigger a build on jitpack: https://jitpack.io/#Financial-Times/advanced-dropwizard-healthcheck
 
-This job uses the Konstructor Versioning API.  Simply select the type of release (*patch*, *minor* or *major*) and it will be
-uploaded to nexus.  The code will be GIT TAGGED - the pom file will NOT be updated and should stay as 'snapshot'.
+The pom file will NOT be updated and should stay as 'snapshot'.
 
 
 About

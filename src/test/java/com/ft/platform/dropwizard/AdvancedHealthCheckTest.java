@@ -1,5 +1,6 @@
 package com.ft.platform.dropwizard;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.platform.dropwizard.metrics.HealthcheckFailureReporter;
 import com.ft.platform.dropwizard.system.Clock;
 import io.dropwizard.setup.Environment;
@@ -10,6 +11,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.IOException;
 import java.util.SortedMap;
+import java.util.concurrent.TimeUnit;
 
 import static com.ft.platform.dropwizard.AdvancedResult.Status.*;
 import static org.hamcrest.Matchers.*;
@@ -28,10 +30,12 @@ public class AdvancedHealthCheckTest {
         environment = new Environment("test-env", null, null, null, Thread.currentThread().getContextClassLoader());
         runner = new AdvancedSynchronousHealthChecksRunner(
                 environment,
+                new ObjectMapper(),
                 "Test App",
                 "A test application",
                 "sys-code",
-                Mockito.mock(HealthcheckFailureReporter.class)
+                Mockito.mock(HealthcheckFailureReporter.class),
+                1
         );
     }
 
@@ -122,6 +126,16 @@ public class AdvancedHealthCheckTest {
         assertThat(healthCheckPageData.overallStatus(), is(ERROR));
     }
 
+    @Test
+    public void summarises_status_correctly_when_timeout_errors() {
+        environment.healthChecks().register("TestHealthCheck1", new TestHealthCheck("one", OK));
+        environment.healthChecks().register("TestHealthCheck2", new TestHealthCheck("two", OK, 12));
+        environment.healthChecks().register("TestHealthCheck3", new TestHealthCheck("three", OK));
+
+        final HealthCheckPageData healthCheckPageData = runner.run();
+        assertThat(healthCheckPageData.overallStatus(), is(ERROR));
+    }
+
     private AdvancedResult runChecksAndReturnFirstResult() {
         final SortedMap<AdvancedHealthCheck, AdvancedResult> results = HealthChecks.runAdvancedHealthChecksIn(environment);
         return results.values().iterator().next();
@@ -130,6 +144,7 @@ public class AdvancedHealthCheckTest {
     public static class TestHealthCheck extends AdvancedHealthCheck {
 
         private final AdvancedResult.Status statusToProduce;
+        private int delay = 0;
 
         public TestHealthCheck(final AdvancedResult.Status status) {
             this("Testing123", status);
@@ -140,8 +155,14 @@ public class AdvancedHealthCheckTest {
             this.statusToProduce = status;
         }
 
+        public TestHealthCheck(final String name, final AdvancedResult.Status status, int delay) {
+            this(name, status);
+            this.delay = delay;
+        }
+
         @Override
         protected AdvancedResult checkAdvanced() throws Exception {
+            TimeUnit.SECONDS.sleep(this.delay);
             switch (statusToProduce) {
                 case OK:
                     return AdvancedResult.healthy("It's all fine");
