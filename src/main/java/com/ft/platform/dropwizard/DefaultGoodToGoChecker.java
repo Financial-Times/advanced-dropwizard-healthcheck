@@ -15,15 +15,15 @@ import java.util.concurrent.TimeoutException;
  */
 public class DefaultGoodToGoChecker implements GoodToGoChecker {
 
-	private static final int DEFAULT_TIMEOUT = 3;
-	private int timeOut;
+	private static final int DEFAULT_TIMEOUT_IN_SECONDS = 3;
+	private int timeOutInSeconds;
 
-	public DefaultGoodToGoChecker(int timeOut) {
-		this.timeOut = timeOut;
+	public DefaultGoodToGoChecker(int timeOutInSeconds) {
+		this.timeOutInSeconds = timeOutInSeconds;
 	}
 
 	public DefaultGoodToGoChecker() {
-		this.timeOut = DEFAULT_TIMEOUT;
+		this.timeOutInSeconds = DEFAULT_TIMEOUT_IN_SECONDS;
 	}
 
 	public GoodToGoResult runCheck(Environment environment) {
@@ -36,9 +36,9 @@ public class DefaultGoodToGoChecker implements GoodToGoChecker {
 					}
 				}
 				return true;
-			}).get(this.timeOut, TimeUnit.SECONDS), "");
+			}).get(this.timeOutInSeconds, TimeUnit.SECONDS), "");
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			return new GoodToGoResult(false, "Timeout running status check");
+			return new GoodToGoResult(false, "Timed out after " + this.timeOutInSeconds + " second(s)");
 		}
 	}
 

@@ -80,7 +80,7 @@ public class DefaultGoodToGoCheckerTest {
                 Thread.currentThread().getContextClassLoader());
         environment.healthChecks().register("test", new LongRunningHealthCheck());
 
-        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "Timeout running status check")));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "Timed out after 1 second(s)")));
     }
 
     private abstract static class TestHealthCheck extends AdvancedHealthCheck {

@@ -22,7 +22,7 @@ public class HealthChecks {
         return runParallelAdvancedHealthChecksWithTimeoutIn(environment, 0);
     }
 
-    static SortedMap<AdvancedHealthCheck, AdvancedResult> runParallelAdvancedHealthChecksWithTimeoutIn(Environment environment, int timeout) {
+    static SortedMap<AdvancedHealthCheck, AdvancedResult> runParallelAdvancedHealthChecksWithTimeoutIn(Environment environment, int timeoutInSeconds) {
         Map<String, HealthCheck> healthChecks = extractHealthChecksFrom(environment);
 
         final SortedMap<AdvancedHealthCheck, AdvancedResult> results = new TreeMap<>();
@@ -36,15 +36,15 @@ public class HealthChecks {
 
         for (Map.Entry<AdvancedHealthCheck, Future<AdvancedResult>> entry: futures.entrySet()) {
             try {
-                if (timeout > 0) {
-                    results.put(entry.getKey(), entry.getValue().get(timeout, TimeUnit.SECONDS));
+                if (timeoutInSeconds > 0) {
+                    results.put(entry.getKey(), entry.getValue().get(timeoutInSeconds, TimeUnit.SECONDS));
                 } else {
                     results.put(entry.getKey(), entry.getValue().get());
                 }
             } catch (InterruptedException | ExecutionException e) {
                 results.put(entry.getKey(), AdvancedResult.error(entry.getKey(), e));
             } catch (TimeoutException e) {
-                results.put(entry.getKey(), AdvancedResult.error(entry.getKey(), "Timed out after " + timeout + " second(s)"));
+                results.put(entry.getKey(), AdvancedResult.error(entry.getKey(), "Timed out after " + timeoutInSeconds + " second(s)"));
             }
         }
         return Collections.unmodifiableSortedMap(results);
