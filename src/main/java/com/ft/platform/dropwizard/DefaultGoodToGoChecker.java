@@ -39,6 +39,8 @@ public class DefaultGoodToGoChecker implements GoodToGoChecker {
 			}).get(this.timeOutInSeconds, TimeUnit.SECONDS), "");
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return new GoodToGoResult(false, "Timed out after " + this.timeOutInSeconds + " second(s)");
+		} finally {
+			executorService.shutdownNow();
 		}
 	}
 
