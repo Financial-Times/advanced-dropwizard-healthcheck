@@ -47,6 +47,7 @@ public class HealthChecks {
                 results.put(entry.getKey(), AdvancedResult.error(entry.getKey(), "Timed out after " + timeoutInSeconds + " second(s)"));
             }
         }
+        executorService.shutdownNow();
         return Collections.unmodifiableSortedMap(results);
     }
 
