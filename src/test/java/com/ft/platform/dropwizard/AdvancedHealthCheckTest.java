@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ft.platform.dropwizard.metrics.HealthcheckFailureReporter;
 import com.ft.platform.dropwizard.system.Clock;
 import io.dropwizard.setup.Environment;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -22,8 +23,10 @@ import static org.junit.Assert.assertThat;
  */
 public class AdvancedHealthCheckTest {
 
-    Environment environment;
-    AdvancedSynchronousHealthChecksRunner runner;
+    private static final int WAIT_IN_SECONDS = 2;
+    private Environment environment;
+    private AdvancedSynchronousHealthChecksRunner runner;
+    private int activeThreads;
 
     @Before
     public void init() {
@@ -37,6 +40,7 @@ public class AdvancedHealthCheckTest {
                 Mockito.mock(HealthcheckFailureReporter.class),
                 1
         );
+        activeThreads = Thread.activeCount();
     }
 
     @Test
@@ -134,6 +138,12 @@ public class AdvancedHealthCheckTest {
 
         final HealthCheckPageData healthCheckPageData = runner.run();
         assertThat(healthCheckPageData.overallStatus(), is(ERROR));
+    }
+
+    @After
+    public void afterCheck() throws Exception {
+        TimeUnit.SECONDS.sleep(WAIT_IN_SECONDS);
+        assertThat("thread count", Thread.activeCount(), lessThanOrEqualTo(activeThreads));
     }
 
     private AdvancedResult runChecksAndReturnFirstResult() {
