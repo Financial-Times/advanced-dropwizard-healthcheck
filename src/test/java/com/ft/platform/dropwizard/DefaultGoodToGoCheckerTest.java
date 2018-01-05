@@ -1,21 +1,26 @@
 package com.ft.platform.dropwizard;
 
 import io.dropwizard.setup.Environment;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 
 public class DefaultGoodToGoCheckerTest {
 
+    private static final int WAIT_IN_SECONDS = 2;
     private GoodToGoChecker checker;
+    private int activeThreads;
 
     @Before
     public void init() {
         checker = new DefaultGoodToGoChecker(1);
+        activeThreads = Thread.activeCount();
     }
 
     @Test
@@ -81,6 +86,12 @@ public class DefaultGoodToGoCheckerTest {
         environment.healthChecks().register("test", new LongRunningHealthCheck());
 
         assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "Timed out after 1 second(s)")));
+    }
+
+    @After
+    public void afterCheck() throws Exception {
+        TimeUnit.SECONDS.sleep(WAIT_IN_SECONDS);
+        assertThat("thread count", Thread.activeCount(), lessThanOrEqualTo(activeThreads));
     }
 
     private abstract static class TestHealthCheck extends AdvancedHealthCheck {
@@ -171,7 +182,7 @@ public class DefaultGoodToGoCheckerTest {
 
         @Override
         protected AdvancedResult checkAdvanced() throws Exception {
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.SECONDS.sleep(WAIT_IN_SECONDS);
             return AdvancedResult.healthy();
         }
     }
