@@ -13,6 +13,7 @@ import io.dropwizard.testing.junit.DropwizardAppRule;
 
 import java.io.File;
 
+import javax.print.attribute.standard.Media;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.client.Client;
@@ -47,7 +48,7 @@ public class GoodToGoCheckIntegrationTest {
 
 		assertThat(result.getStatus(), is(200));
 		assertThat(result.readEntity(String.class), is("OK"));
-		assertThat(result.getMediaType(), is(MediaType.TEXT_PLAIN_TYPE));
+		assertThat(result.getMediaType(), is(MediaType.TEXT_PLAIN_TYPE.withCharset("US-ASCII")));
 		assertThat(result.getStringHeaders().getFirst("Cache-Control"),
 				containsString("no-cache"));
 	}
