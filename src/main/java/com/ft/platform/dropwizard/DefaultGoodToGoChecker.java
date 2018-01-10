@@ -1,5 +1,7 @@
 package com.ft.platform.dropwizard;
 
+import com.codahale.metrics.health.HealthCheck;
+
 import io.dropwizard.setup.Environment;
 
 import java.util.concurrent.ExecutionException;
@@ -16,32 +18,31 @@ import java.util.concurrent.TimeoutException;
 public class DefaultGoodToGoChecker implements GoodToGoChecker {
 
 	private static final int DEFAULT_TIMEOUT_IN_SECONDS = 3;
+	private final ExecutorService executor;
 	private int timeOutInSeconds;
 
-	public DefaultGoodToGoChecker(int timeOutInSeconds) {
+	public DefaultGoodToGoChecker(ExecutorService executor, int timeOutInSeconds) {
 		this.timeOutInSeconds = timeOutInSeconds;
+		this.executor = executor;
 	}
 
 	public DefaultGoodToGoChecker() {
 		this.timeOutInSeconds = DEFAULT_TIMEOUT_IN_SECONDS;
+		this.executor = Executors.newFixedThreadPool(3);
 	}
 
 	public GoodToGoResult runCheck(Environment environment) {
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
 		try {
-			return new GoodToGoResult(executorService.submit(() -> {
-				for (AdvancedResult result : HealthChecks.runAdvancedHealthChecksIn(environment).values()) {
-					if (result.status() == AdvancedResult.Status.ERROR) {
-						return false;
+			return executor.submit(() -> {
+				for (AdvancedResult r : HealthChecks.runAdvancedHealthChecksIn(environment).values()) {
+					if (r.status() == AdvancedResult.Status.ERROR) {
+						return new GoodToGoResult(false, r.checkOutput());
 					}
 				}
-				return true;
-			}).get(this.timeOutInSeconds, TimeUnit.SECONDS), "");
+				return new GoodToGoResult(true, "OK");
+			}).get(this.timeOutInSeconds, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return new GoodToGoResult(false, "Timed out after " + this.timeOutInSeconds + " second(s)");
-		} finally {
-			executorService.shutdownNow();
 		}
 	}
-
 }

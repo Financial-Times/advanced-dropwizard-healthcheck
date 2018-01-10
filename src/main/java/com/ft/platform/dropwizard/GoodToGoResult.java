@@ -32,4 +32,9 @@ public class GoodToGoResult {
     public int hashCode() {
         return Objects.hash(goodToGo, errorMessage);
     }
+
+    @Override
+    public String toString() {
+        return "{\"goodToGo\":"+this.goodToGo+",\"errorMessage\":\""+this.errorMessage+"\"}";
+    }
 }

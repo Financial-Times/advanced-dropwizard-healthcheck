@@ -1,26 +1,37 @@
 package com.ft.platform.dropwizard;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
+
 import io.dropwizard.setup.Environment;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DefaultGoodToGoCheckerTest {
 
     private static final int WAIT_IN_SECONDS = 2;
     private GoodToGoChecker checker;
-    private int activeThreads;
 
     @Before
     public void init() {
-        checker = new DefaultGoodToGoChecker(1);
-        activeThreads = Thread.activeCount();
+        checker = new DefaultGoodToGoChecker(Executors.newSingleThreadExecutor(), 1);
     }
 
     @Test
@@ -30,8 +41,7 @@ public class DefaultGoodToGoCheckerTest {
                 Thread.currentThread().getContextClassLoader());
         environment.healthChecks().register("test", new ErroringHealthCheck());
 
-        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "")));
-
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "error")));
     }
 
     @Test
@@ -41,7 +51,7 @@ public class DefaultGoodToGoCheckerTest {
                 Thread.currentThread().getContextClassLoader());
         environment.healthChecks().register("test", new WarningHealthCheck());
 
-        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "")));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "OK")));
 
     }
 
@@ -51,7 +61,7 @@ public class DefaultGoodToGoCheckerTest {
                 Thread.currentThread().getContextClassLoader());
         environment.healthChecks().register("test", new PassingHealthCheck());
 
-        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "")));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "OK")));
 
     }
 
@@ -59,24 +69,24 @@ public class DefaultGoodToGoCheckerTest {
     public void shouldReturnTrueWithMixedResultsContainingNoError() {
         final Environment environment = new Environment("test-env", null, null, null,
                 Thread.currentThread().getContextClassLoader());
-        environment.healthChecks().register("test", new PassingHealthCheck());
-        environment.healthChecks().register("test", new WarningHealthCheck());
-        environment.healthChecks().register("test", new PassingHealthCheck());
-        environment.healthChecks().register("test", new WarningHealthCheck());
+        environment.healthChecks().register("test-1", new PassingHealthCheck());
+        environment.healthChecks().register("test-2", new WarningHealthCheck());
+        environment.healthChecks().register("test-3", new PassingHealthCheck());
+        environment.healthChecks().register("test-4", new WarningHealthCheck());
 
-        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "")));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "OK")));
     }
 
     @Test
     public void shouldReturnFalseWithMixedResultsContainingAnError() {
         final Environment environment = new Environment("test-env", null, null, null,
                 Thread.currentThread().getContextClassLoader());
-        environment.healthChecks().register("test", new PassingHealthCheck());
-        environment.healthChecks().register("test", new WarningHealthCheck());
-        environment.healthChecks().register("test", new ErroringHealthCheck());
-        environment.healthChecks().register("test", new WarningHealthCheck());
+        environment.healthChecks().register("test-1", new PassingHealthCheck());
+        environment.healthChecks().register("test-2", new WarningHealthCheck());
+        environment.healthChecks().register("test-3", new ErroringHealthCheck());
+        environment.healthChecks().register("test-4", new WarningHealthCheck());
 
-        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "")));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "error")));
     }
 
     @Test
@@ -86,12 +96,6 @@ public class DefaultGoodToGoCheckerTest {
         environment.healthChecks().register("test", new LongRunningHealthCheck());
 
         assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "Timed out after 1 second(s)")));
-    }
-
-    @After
-    public void afterCheck() throws Exception {
-        TimeUnit.SECONDS.sleep(WAIT_IN_SECONDS);
-        assertThat("thread count", Thread.activeCount(), lessThanOrEqualTo(activeThreads));
     }
 
     private abstract static class TestHealthCheck extends AdvancedHealthCheck {
@@ -171,8 +175,16 @@ public class DefaultGoodToGoCheckerTest {
     }
 
     private static class LongRunningHealthCheck extends TestHealthCheck {
+        private int wait;
+
         protected LongRunningHealthCheck() {
-            super(LongRunningHealthCheck.class.getName());
+          super(LongRunningHealthCheck.class.getName());
+          this.wait = WAIT_IN_SECONDS;
+        }
+
+        protected LongRunningHealthCheck(int wait) {
+          super(LongRunningHealthCheck.class.getName());
+          this.wait = wait;
         }
 
         @Override
@@ -182,7 +194,7 @@ public class DefaultGoodToGoCheckerTest {
 
         @Override
         protected AdvancedResult checkAdvanced() throws Exception {
-            TimeUnit.SECONDS.sleep(WAIT_IN_SECONDS);
+            TimeUnit.SECONDS.sleep(wait);
             return AdvancedResult.healthy();
         }
     }
