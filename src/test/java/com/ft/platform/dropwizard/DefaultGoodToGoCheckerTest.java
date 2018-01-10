@@ -1,28 +1,20 @@
 package com.ft.platform.dropwizard;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.Futures;
-
-import io.dropwizard.setup.Environment;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import io.dropwizard.setup.Environment;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class DefaultGoodToGoCheckerTest {
 
@@ -96,6 +88,25 @@ public class DefaultGoodToGoCheckerTest {
         environment.healthChecks().register("test", new LongRunningHealthCheck());
 
         assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "Timed out after 1 second(s)")));
+    }
+
+    @Test
+    public void shouldOnlyRunAMaximumOfThreeThreadsWithDefaults() throws Exception {
+      final Environment environment = new Environment("test-env", null, null, null,
+              Thread.currentThread().getContextClassLoader());
+
+      environment.healthChecks().register("test", new PassingHealthCheck());
+      int expectedThreadCount = Thread.activeCount() + 3; // There are three executors
+
+      checker = new DefaultGoodToGoChecker(); // use the defaults to mimic actual use
+
+      for(int i = 0 ; i <= 6 ; i++){
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(true, "OK")));
+      }
+
+      TimeUnit.SECONDS.sleep(1); // allow the last worker thread to move to WAITING state
+
+      assertThat("thread count", Thread.activeCount(), lessThanOrEqualTo(expectedThreadCount));
     }
 
     private abstract static class TestHealthCheck extends AdvancedHealthCheck {

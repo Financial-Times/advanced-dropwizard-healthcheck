@@ -1,14 +1,12 @@
 package com.ft.platform.dropwizard;
 
-import com.codahale.metrics.health.HealthCheck;
-
-import io.dropwizard.setup.Environment;
-
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import io.dropwizard.setup.Environment;
 
 /**
  * This implementation of {@link GoodToGoChecker} is based solely on the health
