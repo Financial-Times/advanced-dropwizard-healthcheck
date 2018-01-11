@@ -86,6 +86,10 @@ public class AdvancedResult {
         return checkOutput;
     }
 
+    public AdvancedHealthCheck getAdvancedHealthCheck() {
+      return this.healthCheck;
+    }
+
     public Date checkedDate() {
         return checkedDate;
     }

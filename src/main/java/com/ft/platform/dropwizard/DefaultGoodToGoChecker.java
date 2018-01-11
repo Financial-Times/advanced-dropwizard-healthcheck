@@ -34,7 +34,7 @@ public class DefaultGoodToGoChecker implements GoodToGoChecker {
 			return executor.submit(() -> {
 				for (AdvancedResult r : HealthChecks.runAdvancedHealthChecksIn(environment).values()) {
 					if (r.status() == AdvancedResult.Status.ERROR) {
-						return new GoodToGoResult(false, r.checkOutput());
+						return new GoodToGoResult(false, "Healthcheck \"" + r.getAdvancedHealthCheck().getName() + "\" failed. See /__health for more information.");
 					}
 				}
 				return new GoodToGoResult(true, "OK");
