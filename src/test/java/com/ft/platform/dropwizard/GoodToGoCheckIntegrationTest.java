@@ -1,15 +1,11 @@
 package com.ft.platform.dropwizard;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import io.dropwizard.Application;
-import io.dropwizard.Configuration;
-import io.dropwizard.client.JerseyClientBuilder;
-import io.dropwizard.client.JerseyClientConfiguration;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-import io.dropwizard.testing.junit.DropwizardAppRule;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.io.Resources;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.io.File;
 
@@ -19,13 +15,17 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.client.ClientResponse;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import io.dropwizard.Application;
+import io.dropwizard.Configuration;
+import io.dropwizard.client.JerseyClientBuilder;
+import io.dropwizard.client.JerseyClientConfiguration;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+import io.dropwizard.testing.junit.DropwizardAppRule;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.io.Resources;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class GoodToGoCheckIntegrationTest {
 
@@ -47,7 +47,7 @@ public class GoodToGoCheckIntegrationTest {
 
 		assertThat(result.getStatus(), is(200));
 		assertThat(result.readEntity(String.class), is("OK"));
-		assertThat(result.getMediaType(), is(MediaType.TEXT_PLAIN_TYPE));
+		assertThat(result.getMediaType(), is(MediaType.TEXT_PLAIN_TYPE.withCharset("US-ASCII")));
 		assertThat(result.getStringHeaders().getFirst("Cache-Control"),
 				containsString("no-cache"));
 	}

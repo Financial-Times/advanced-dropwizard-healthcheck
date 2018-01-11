@@ -2,7 +2,7 @@ package com.ft.platform.dropwizard;
 
 public class GTGConfig {
     private String okBody = "OK";
-    private String contentType = "text/plain";
+    private String contentType = "text/plain; charset=US-ASCII";
 
     public GTGConfig() {
     }
