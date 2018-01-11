@@ -3,10 +3,6 @@ package com.ft.platform.dropwizard;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +29,7 @@ public class DefaultGoodToGoCheckerTest {
                 Thread.currentThread().getContextClassLoader());
         environment.healthChecks().register("test", new ErroringHealthCheck());
 
-        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "error")));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "Healthcheck \"ErroringHealthCheck\" failed. See /__health for more information.")));
     }
 
     @Test
@@ -78,7 +74,7 @@ public class DefaultGoodToGoCheckerTest {
         environment.healthChecks().register("test-3", new ErroringHealthCheck());
         environment.healthChecks().register("test-4", new WarningHealthCheck());
 
-        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "error")));
+        assertThat(checker.runCheck(environment), is(new GoodToGoResult(false, "Healthcheck \"ErroringHealthCheck\" failed. See /__health for more information.")));
     }
 
     @Test
@@ -139,7 +135,7 @@ public class DefaultGoodToGoCheckerTest {
 
     private static class ErroringHealthCheck extends TestHealthCheck {
         protected ErroringHealthCheck() {
-            super(ErroringHealthCheck.class.getName());
+            super("ErroringHealthCheck");
         }
 
         @Override
@@ -155,7 +151,7 @@ public class DefaultGoodToGoCheckerTest {
 
     private static class WarningHealthCheck extends TestHealthCheck {
         protected WarningHealthCheck() {
-            super(WarningHealthCheck.class.getName());
+            super("WarningHealthCheck");
         }
 
         @Override
@@ -171,7 +167,7 @@ public class DefaultGoodToGoCheckerTest {
 
     private static class PassingHealthCheck extends TestHealthCheck {
         protected PassingHealthCheck() {
-            super(PassingHealthCheck.class.getName());
+            super("PassingHealthCheck");
         }
 
         @Override
